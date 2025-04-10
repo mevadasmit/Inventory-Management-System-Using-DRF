@@ -24,8 +24,7 @@ class RegisterView(generics.CreateAPIView):
     API view for Admin to create a new user.
     """
     serializer_class = UserRegisterSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, RoleBasedPermission]
-    allowed_roles = [FIELD_ADMIN, FIELD_IM]
+    permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         """
@@ -156,20 +155,23 @@ class PasswordChangeView(mixins.RetrieveModelMixin, generics.GenericAPIView):
 
 class LogoutAPIView(generics.GenericAPIView):
     """
-        Logs out the current user.
-
-        This view handles user logout by deleting the user's authentication token.
-        Only authenticated users can access this view.
+    Logs out the current user by blacklisting their refresh tokens.
     """
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):  # noqa
-        # Delete the token to log out the user
-        deleted, _ = Token.objects.filter(user=request.user).delete()
-        if deleted:
-            return success_response(USER_LOGGED_OUT, status.HTTP_200_OK)
-        return error_response(ALREADY_USER_LOGGED_OUT, status.HTTP_400_BAD_REQUEST)
+    def post(self, request, *args, **kwargs):
+        try:
+            refresh_token = request.data.get("refresh")
+            if not refresh_token:
+                return error_response("Refresh token is required.", ALREADY_USER_LOGGED_OUT, status.HTTP_400_BAD_REQUEST)
+
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            return success_response(USER_LOGGED_OUT, status_code=status.HTTP_200_OK)
+        except Exception as e:
+            return error_response(str(e), ALREADY_USER_LOGGED_OUT, status.HTTP_400_BAD_REQUEST)
+
 
 
 class ProfileUpdateView(generics.RetrieveUpdateAPIView):
