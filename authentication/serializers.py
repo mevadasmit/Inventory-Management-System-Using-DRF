@@ -9,6 +9,9 @@ from authentication.constants import (CREDENTIAL_ERROR, BOTH_FILED_REQUIRED, INV
                                       PASSWORD_NOT_MATCH, TOKEN_REQUIRED, INVALID_TOKEN, PASSWORD_RESET_SUCCESS,
                                       ALL_PASSWORD_REQUIRED, NEW_OLD_PASSWORD_NOT_MATCH, INVALID_OLD_PASSWORD,
                                       USER_UN_AUTHENTICATED, )
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
+from rest_framework import serializers
 
 user = get_user_model()
 token_generator = PasswordResetTokenGenerator()
@@ -89,35 +92,29 @@ class LoginSerializer(serializers.Serializer):
         if not users:
             raise serializers.ValidationError(CREDENTIAL_ERROR)
 
-        # Ensure Token model exists and create/retrieve a token
-        token, _ = Token.objects.get_or_create(user=users)
+        refresh = RefreshToken.for_user(users)
+
 
         return {
             "user": users,
-            "token": token.key
+            "refresh": str(refresh),
+            "access":str(refresh.access_token)
         }
+
 
     def to_representation(self, instance):
-        """
-            Customize the representation of the validated data.
-
-            Args:
-                instance (dict): The validated data containing user and token.
-
-            Returns:
-                dict: A customized dictionary with user details and token.
-        """
+        user = instance['user']
         return {
             "user": {
-                "id": f"{instance['user'].id}",
-                "name": f"{instance['user'].first_name} {instance['user'].last_name}",
-                "email": instance['user'].email,
+                "id": user.id,
+                "name": f"{user.first_name} {user.last_name}",
+                "email": user.email,
+                "role": user.role
             },
-            "token": instance.get("token"),
-            "role": instance['user'].role
+            "access": instance["access"],
+            "refresh": instance["refresh"]
         }
-
-
+        
 class ForgotPasswordSerializer(serializers.Serializer):
     """
         Serializer for initiating the password reset process.
