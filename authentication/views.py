@@ -24,7 +24,6 @@ class RegisterView(generics.CreateAPIView):
     API view for Admin to create a new user.
     """
     serializer_class = UserRegisterSerializer
-    permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         """
