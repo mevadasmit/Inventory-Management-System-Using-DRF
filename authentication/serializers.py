@@ -2,6 +2,7 @@ from django.utils.crypto import get_random_string
 from rest_framework import serializers
 from authentication.models import CustomUser, Profile
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from authentication.tasks import send_password_changed_email
 from base.utils import send_registration_email, send_password_reset_email
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, get_user_model
@@ -12,7 +13,8 @@ from authentication.constants import (CREDENTIAL_ERROR, BOTH_FILED_REQUIRED, INV
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework import serializers
-
+from django.db import transaction
+from datetime import timedelta
 user = get_user_model()
 token_generator = PasswordResetTokenGenerator()
 
@@ -270,6 +272,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         new_password = self.validated_data['new_password']
         users.set_password(new_password)
         users.save()
+        transaction.on_commit(lambda: send_password_changed_email(users.id))
         return {"message": PASSWORD_RESET_SUCCESS}
 
 

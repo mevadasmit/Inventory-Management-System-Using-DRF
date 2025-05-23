@@ -1,7 +1,10 @@
+from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from inventory_manager.models import OrgInventory
 from order_management.models import Order
+from order_management.tasks import send_order_confirmed_email
+
 
 @receiver(post_save, sender=Order)
 def update_stock_on_confirm(sender, instance, created, **kwargs):
@@ -21,3 +24,7 @@ def update_stock_on_confirm(sender, instance, created, **kwargs):
             )
             org_inventory.quantity_in_stock += item.quantity
             org_inventory.save()
+
+        transaction.on_commit(
+            lambda: send_order_confirmed_email(order_id=instance.id,)
+        )

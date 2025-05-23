@@ -1,0 +1,17 @@
+Run in python manage.py shell
+
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
+
+schedule, created = IntervalSchedule.objects.get_or_create(
+    every=2, # Interval
+    period=IntervalSchedule.MINUTES,
+)
+
+# Create periodic task if not exists
+task_name = 'Export org CSV every 2 minutes'
+if not PeriodicTask.objects.filter(name=task_name).exists():
+    PeriodicTask.objects.create(
+        interval=schedule,
+        name=task_name,
+        task='main_admin.tasks.export_org_csv',
+    )
