@@ -14,14 +14,14 @@ class AdminConfig(AppConfig):
             from django.db.utils import OperationalError, ProgrammingError
 
             schedule, created = IntervalSchedule.objects.get_or_create(
-                every=10,
-                period=IntervalSchedule.MINUTES,
+                every=2,
+                period=IntervalSchedule.HOURS,
             )
             logger.info(f"IntervalSchedule {'created' if created else 'exists'}: {schedule}")
 
             periodic_task, created = PeriodicTask.objects.get_or_create(
                 interval=schedule,
-                name="Export Org CSV Every 2 Minutes",
+                name="Export Org CSV Every 2 Hours",
                 task="main_admin.tasks.export_org_csv",
             )
             logger.info(f"PeriodicTask {'created' if created else 'exists'}: {periodic_task}")

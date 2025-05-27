@@ -10,6 +10,8 @@ csv_logs
 # Backup files #
 *.bak
 
+docker.env
+
 staticfiles
 
 .idea

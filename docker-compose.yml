@@ -5,10 +5,18 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["/wait-for-it.sh", "db:5432", "--", "gunicorn", "hospital_inventory_management.wsgi:application", "--bind", "0.0.0.0:8000", "--access-logfile", "-", "--error-logfile", "-"]
+    command: >
+      bash -c "
+        echo 'Waiting for PostgreSQL...' &&
+        while ! nc -z $DATABASE_HOST $DATABASE_PORT; do sleep 1; done &&
+        echo 'PostgreSQL is up!' &&
+        python manage.py migrate --noinput &&
+        python manage.py collectstatic --noinput &&
+        gunicorn hospital_inventory_management.wsgi:application --bind 0.0.0.0:8000
+      "
     volumes:
       - .:/app
-      - ./tmp:/tmp
+      - ./tmp:/app/tmp
       - ./csv_logs:/home/root491/csv_logs
       - ./static:/app/static
     env_file:
@@ -22,9 +30,11 @@ services:
   db:
     image: postgres:13
     env_file:
-      - .env
+      - docker.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5431:5432"
 
   redis:
     image: redis:6
@@ -33,7 +43,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["/wait-for-it.sh", "db:5432", "--", "celery", "-A", "hospital_inventory_management", "worker", "--loglevel=info"]
+    command: >
+      bash -c "
+        echo 'Waiting for PostgreSQL...' &&
+        while ! nc -z $DATABASE_HOST $DATABASE_PORT; do sleep 1; done &&
+        celery -A hospital_inventory_management worker --loglevel=info
+      "
     volumes:
       - .:/app
       - ./csv_logs:/home/root491/csv_logs
@@ -47,7 +62,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["/wait-for-it.sh", "db:5432", "--", "celery", "-A", "hospital_inventory_management", "beat", "--loglevel=info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
+    command: >
+      bash -c "
+        echo 'Waiting for PostgreSQL...' &&
+        while ! nc -z $DATABASE_HOST $DATABASE_PORT; do sleep 1; done &&
+        celery -A hospital_inventory_management beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+      "
     volumes:
       - .:/app
     depends_on:
