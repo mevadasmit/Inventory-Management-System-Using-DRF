@@ -5,9 +5,12 @@
 __pycache__
 db.sqlite3
 media
+csv_logs
 
 # Backup files #
 *.bak
+
+staticfiles
 
 .idea
 
