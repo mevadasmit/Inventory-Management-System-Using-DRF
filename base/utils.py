@@ -5,7 +5,6 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 CustomUser = get_user_model()
 token_generator = PasswordResetTokenGenerator()
-
 def send_registration_email(user, raw_password):
     """
     Sends a registration email with login credentials.
@@ -31,11 +30,10 @@ def send_registration_email(user, raw_password):
     Regards,  
     **Medivault Team**
     """
-
     try:
         send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=False)
     except Exception as e:
-        raise f"Failed to send email to {user.email} " from e
+        raise RuntimeError(f"Failed to send email to {user.email}") from e
 
 def send_password_reset_email(user, request=None):
     if not isinstance(user, CustomUser):

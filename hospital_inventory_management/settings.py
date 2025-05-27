@@ -114,15 +114,16 @@ WSGI_APPLICATION = "hospital_inventory_management.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-   'default': {
-       'ENGINE': 'django.db.backends.postgresql',
-       'NAME': os.getenv('DATABASE_NAME'),
-       'USER': os.getenv('DATABASE_USER_NAME'),
-       'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-       'HOST': os.getenv('DATABASE_HOST'),
-       'PORT': os.getenv('DATABASE_PORT'),
-   }
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DATABASE_NAME') or os.getenv('POSTGRES_DB'),
+        'USER': os.getenv('DATABASE_USER_NAME') or os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD') or os.getenv('POSTGRES_PASSWORD'),
+        'HOST': os.getenv('DATABASE_HOST', 'localhost'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
+    }
 }
+
 
 
 # Password validation
@@ -170,13 +171,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND')
-EMAIL_HOST = os.getenv('EMAIL_HOST')
-EMAIL_PORT = os.getenv('EMAIL_PORT')
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')  # from your .env
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # from your .env
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
@@ -187,6 +188,5 @@ CELERY_TIMEZONE = 'Asia/Kolkata'
 CELERY_ENABLE_UTC = True
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
-
-IMPORT_EXPORT_TMP_STORAGE_CLASS = 'import_export.tmp_storages.TempFolderStorage'
+IMPORT_EXPORT_TMP_STORAGE = 'import_export.tmp_storages.TemporaryFileStorage'
 IMPORT_EXPORT_TMP_STORAGE_PATH = '/app/tmp'

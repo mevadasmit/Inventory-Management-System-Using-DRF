@@ -8,6 +8,7 @@ services:
     command: ["/wait-for-it.sh", "db:5432", "--", "gunicorn", "hospital_inventory_management.wsgi:application", "--bind", "0.0.0.0:8000", "--access-logfile", "-", "--error-logfile", "-"]
     volumes:
       - .:/app
+      - ./tmp:/tmp
       - ./csv_logs:/home/root491/csv_logs
       - ./static:/app/static
     env_file:
