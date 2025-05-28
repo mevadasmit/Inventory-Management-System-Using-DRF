@@ -6,9 +6,10 @@ from .models import Profile, CustomUser
 def create_user_profile(sender, instance, created, **kwargs):
     """Automatically create a Profile when a new CustomUser is created."""
     if created:
-        Profile.objects.create(user=instance)  # Create profile with default values
+        Profile.objects.create(user=instance,created_by=instance,updated_by=instance)  # Create profile with default values
 
 @receiver(post_save, sender=CustomUser)
 def save_user_profile(sender, instance, **kwargs):
     """Ensure profile is saved when user is saved."""
+    instance.profile.updated_by = instance
     instance.profile.save()
