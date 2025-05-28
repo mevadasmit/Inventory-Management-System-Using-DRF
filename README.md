@@ -3,6 +3,26 @@
 A full-featured, role-based inventory tracking and request/return management system built using Django REST Framework and PostgreSQL, tailored specifically for hospital environments. It supports role-based workflows for Nurses, Suppliers, and Inventory Managers, with secure JWT authentication, background task handling via Celery, import/export functionalities, and containerized deployment using Docker.
 
 ---
+## ⚠️ Setup Branch Notice
+
+🔀 **This project has two branches:**
+
+- `dev` → Traditional Django setup (without Docker and Celery)
+- `docker-implementation` → Full Dockerized setup with Celery and background task support
+
+### ✅ To run the full-featured Docker + Celery version:
+
+```bash
+
+git clone -b docker-implementation <repo_url>
+cd inventory-management-system
+
+###🧪 To work with the normal local setup:
+
+git clone -b dev <repo_url>
+cd inventory-management-system
+
+
 
 ## ✨ Features
 
