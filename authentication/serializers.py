@@ -272,7 +272,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         new_password = self.validated_data['new_password']
         users.set_password(new_password)
         users.save()
-        transaction.on_commit(lambda: send_password_changed_email(users.id))
+        transaction.on_commit(lambda: send_password_changed_email.delay(users.id))
         return {"message": PASSWORD_RESET_SUCCESS}
 
 
